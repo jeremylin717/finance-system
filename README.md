@@ -5,6 +5,7 @@
 ## 功能
 
 - 收入 / 支出流水管理
+- 登录 / 注册
 - 自定义分类
 - 按月份和分类查询流水
 - 月度总收入、总支出、结余统计
@@ -40,6 +41,7 @@ mysql -uroot -p --default-character-set=utf8mb4 < sql/init.sql
 - `transaction`
 - `budget`
 - `category_dict`
+- `finance_user`
 
 ### 2. 配置数据库连接
 
@@ -96,6 +98,8 @@ http://localhost:8080/api/health
 ## 常用接口
 
 - `POST /api/transaction/add` 添加交易
+- `POST /api/auth/register` 用户注册
+- `POST /api/auth/login` 用户登录
 - `DELETE /api/transaction/{id}` 删除交易
 - `GET /api/transaction/{id}` 查询交易详情
 - `GET /api/transaction/list?month=2026-06&category=餐饮` 查询交易列表

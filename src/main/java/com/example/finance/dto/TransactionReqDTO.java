@@ -16,6 +16,9 @@ import java.time.LocalDate;
 @Schema(description = "新增交易请求")
 public class TransactionReqDTO {
 
+    @Schema(description = "用户ID", example = "1")
+    private Integer userId;
+
     @NotNull(message = "金额不能为空")
     @DecimalMin(value = "0.01", message = "金额必须大于0")
     @Schema(description = "交易金额", example = "35.50", requiredMode = Schema.RequiredMode.REQUIRED)

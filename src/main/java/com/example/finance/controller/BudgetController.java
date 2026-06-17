@@ -33,8 +33,6 @@ import java.util.List;
 @RequestMapping("/api/budget")
 public class BudgetController {
 
-    private static final Integer DEFAULT_USER_ID = 1;
-
     private final BudgetService budgetService;
 
     @Operation(summary = "新增预算")
@@ -61,18 +59,22 @@ public class BudgetController {
     @Operation(summary = "按月份查询预算列表")
     @GetMapping("/list")
     public Result<List<Budget>> list(
+            @Parameter(description = "用户ID", example = "1")
+            @RequestParam(required = false) Integer userId,
             @Parameter(description = "月份，格式yyyy-MM", example = "2026-06", required = true)
             @Pattern(regexp = "^\\d{4}-\\d{2}$", message = "月份格式必须为yyyy-MM")
             @RequestParam String month) {
-        return Result.success(budgetService.listByMonth(DEFAULT_USER_ID, month));
+        return Result.success(budgetService.listByMonth(userId, month));
     }
 
     @Operation(summary = "检查所有分类是否超支")
     @GetMapping("/check")
     public Result<List<OverBudgetVO>> check(
+            @Parameter(description = "用户ID", example = "1")
+            @RequestParam(required = false) Integer userId,
             @Parameter(description = "月份，格式yyyy-MM", example = "2026-06", required = true)
             @Pattern(regexp = "^\\d{4}-\\d{2}$", message = "月份格式必须为yyyy-MM")
             @RequestParam String month) {
-        return Result.success(budgetService.checkOverBudget(DEFAULT_USER_ID, month));
+        return Result.success(budgetService.checkOverBudget(userId, month));
     }
 }

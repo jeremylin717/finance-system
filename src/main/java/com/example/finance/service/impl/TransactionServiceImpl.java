@@ -42,7 +42,7 @@ public class TransactionServiceImpl implements TransactionService {
         }
 
         Transaction transaction = new Transaction();
-        transaction.setUserId(DEFAULT_USER_ID);
+        transaction.setUserId(normalizeUserId(dto.getUserId()));
         transaction.setAmount(dto.getAmount());
         transaction.setType(dto.getType());
         transaction.setCategory(dto.getCategory());

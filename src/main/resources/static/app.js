@@ -3,6 +3,7 @@ const incomeCategories = ["兼职", "生活费", "奖学金"];
 const allCategories = [...expenseCategories, ...incomeCategories];
 
 const state = {
+    user: null,
     month: "",
     report: null,
     transactions: [],
@@ -11,6 +12,12 @@ const state = {
 };
 
 const els = {
+    authPage: document.querySelector("#authPage"),
+    appPage: document.querySelector("#appPage"),
+    loginForm: document.querySelector("#loginForm"),
+    registerForm: document.querySelector("#registerForm"),
+    loginUserText: document.querySelector("#loginUserText"),
+    logoutBtn: document.querySelector("#logoutBtn"),
     monthInput: document.querySelector("#monthInput"),
     sideMonth: document.querySelector("#sideMonth"),
     refreshBtn: document.querySelector("#refreshBtn"),
@@ -41,8 +48,7 @@ const els = {
 };
 
 function today() {
-    const now = new Date();
-    return now.toISOString().slice(0, 10);
+    return new Date().toISOString().slice(0, 10);
 }
 
 function currentMonth() {
@@ -73,6 +79,43 @@ function showToast(message) {
     els.toast.classList.add("show");
     window.clearTimeout(showToast.timer);
     showToast.timer = window.setTimeout(() => els.toast.classList.remove("show"), 2400);
+}
+
+function setUser(user) {
+    state.user = user;
+    if (user) {
+        localStorage.setItem("financeUser", JSON.stringify(user));
+        els.authPage.classList.add("hidden");
+        els.appPage.classList.remove("hidden");
+        els.loginUserText.textContent = `${user.nickname || user.username} · ID ${user.userId}`;
+        loadAll().catch(error => showToast(error.message));
+    } else {
+        localStorage.removeItem("financeUser");
+        els.appPage.classList.add("hidden");
+        els.authPage.classList.remove("hidden");
+    }
+}
+
+async function submitLogin(event) {
+    event.preventDefault();
+    const data = Object.fromEntries(new FormData(els.loginForm).entries());
+    const user = await api("/api/auth/login", {
+        method: "POST",
+        body: JSON.stringify(data)
+    });
+    showToast("登录成功");
+    setUser(user);
+}
+
+async function submitRegister(event) {
+    event.preventDefault();
+    const data = Object.fromEntries(new FormData(els.registerForm).entries());
+    const user = await api("/api/auth/register", {
+        method: "POST",
+        body: JSON.stringify(data)
+    });
+    showToast("注册成功，已进入系统");
+    setUser(user);
 }
 
 function fillDatalist(datalist, categories) {
@@ -119,22 +162,27 @@ function switchView(target) {
 }
 
 async function loadAll() {
+    if (!state.user) {
+        return;
+    }
+
     state.month = els.monthInput.value || currentMonth();
     els.monthInput.value = state.month;
     els.sideMonth.textContent = state.month;
     els.budgetForm.elements.month.value = state.month;
 
+    const userId = state.user.userId;
     const category = els.categoryFilter.value;
-    const query = new URLSearchParams({ month: state.month });
+    const query = new URLSearchParams({ userId, month: state.month });
     if (category) {
         query.set("category", category);
     }
 
     const [report, transactions, budgets, overBudgets] = await Promise.all([
-        api(`/api/transaction/report?month=${encodeURIComponent(state.month)}`),
+        api(`/api/transaction/report?userId=${userId}&month=${encodeURIComponent(state.month)}`),
         api(`/api/transaction/list?${query.toString()}`),
-        api(`/api/budget/list?month=${encodeURIComponent(state.month)}`),
-        api(`/api/budget/check?month=${encodeURIComponent(state.month)}`)
+        api(`/api/budget/list?userId=${userId}&month=${encodeURIComponent(state.month)}`),
+        api(`/api/budget/check?userId=${userId}&month=${encodeURIComponent(state.month)}`)
     ]);
 
     state.report = report;
@@ -174,7 +222,7 @@ function renderCategoryStats() {
         const percent = Math.max(6, Math.round(Number(item.total || 0) / max * 100));
         return `
             <div class="bar-row">
-                <strong>${item.category}</strong>
+                <strong>${escapeHtml(item.category)}</strong>
                 <div class="bar-track"><div class="bar-fill" style="width:${percent}%"></div></div>
                 <span class="money">${money(item.total)}</span>
             </div>
@@ -188,7 +236,7 @@ function renderTransactions() {
     els.recentList.innerHTML = recent.length ? recent.map(item => `
         <div class="timeline-item">
             <div class="item-title">
-                <strong>${item.category} <span class="tag ${item.type === 1 ? "income" : "expense"}">${item.type === 1 ? "收入" : "支出"}</span></strong>
+                <strong>${escapeHtml(item.category)} <span class="tag ${item.type === 1 ? "income" : "expense"}">${item.type === 1 ? "收入" : "支出"}</span></strong>
                 <small>${item.transactionDate}${item.description ? ` · ${escapeHtml(item.description)}` : ""}</small>
             </div>
             <strong class="money">${item.type === 1 ? "+" : "-"}${money(item.amount)}</strong>
@@ -199,7 +247,7 @@ function renderTransactions() {
         <tr>
             <td>${item.transactionDate}</td>
             <td><span class="tag ${item.type === 1 ? "income" : "expense"}">${item.type === 1 ? "收入" : "支出"}</span></td>
-            <td>${item.category}</td>
+            <td>${escapeHtml(item.category)}</td>
             <td class="money">${item.type === 1 ? "+" : "-"}${money(item.amount)}</td>
             <td>${escapeHtml(item.description || "")}</td>
             <td><button class="danger-btn" data-delete-transaction="${item.id}">删除</button></td>
@@ -214,7 +262,7 @@ function renderBudgets() {
         return `
             <div class="budget-item">
                 <div class="item-title">
-                    <strong>${item.category}${over ? ` <span class="tag expense">已超支</span>` : ""}</strong>
+                    <strong>${escapeHtml(item.category)}${over ? ` <span class="tag expense">已超支</span>` : ""}</strong>
                     <small>${item.month} · 预算 ${money(item.monthlyLimit)}</small>
                 </div>
                 <div class="button-row">
@@ -231,7 +279,7 @@ function renderOverBudgets() {
     els.overBudgetList.innerHTML = state.overBudgets.length ? state.overBudgets.map(item => `
         <div class="over-item">
             <div class="item-title">
-                <strong>${item.category}</strong>
+                <strong>${escapeHtml(item.category)}</strong>
                 <small>预算 ${money(item.monthlyLimit)} · 已花 ${money(item.actualExpense)}</small>
             </div>
             <strong class="money">超 ${money(item.overAmount)}</strong>
@@ -248,7 +296,7 @@ function renderDailyTrend() {
         return;
     }
     const max = Math.max(...entries.map(([, value]) => Number(value || 0)), 1);
-    const bars = entries.map(([day, value]) => {
+    els.dailyTrend.innerHTML = entries.map(([day, value]) => {
         const height = Math.max(8, Math.round(Number(value || 0) / max * 260));
         return `
             <div class="trend-item" title="${day} ${money(value)}">
@@ -257,7 +305,6 @@ function renderDailyTrend() {
             </div>
         `;
     }).join("");
-    els.dailyTrend.innerHTML = bars;
 
     els.sparkline.innerHTML = entries.slice(-12).map(([, value]) => {
         const height = Math.max(10, Math.round(Number(value || 0) / max * 90));
@@ -268,6 +315,7 @@ function renderDailyTrend() {
 async function submitTransaction(event) {
     event.preventDefault();
     const data = Object.fromEntries(new FormData(els.transactionForm).entries());
+    data.userId = state.user.userId;
     data.type = Number(data.type);
     data.amount = Number(data.amount);
     await api("/api/transaction/add", {
@@ -284,6 +332,7 @@ async function submitTransaction(event) {
 async function submitBudget(event) {
     event.preventDefault();
     const data = Object.fromEntries(new FormData(els.budgetForm).entries());
+    data.userId = state.user.userId;
     data.monthlyLimit = Number(data.monthlyLimit);
     const isUpdate = Boolean(data.id);
     if (!isUpdate) {
@@ -302,6 +351,14 @@ async function submitBudget(event) {
 
 async function handleDocumentClick(event) {
     const target = event.target;
+    const authTab = target.dataset.authTab;
+    if (authTab) {
+        document.querySelectorAll(".auth-tab").forEach(tab => tab.classList.toggle("active", tab.dataset.authTab === authTab));
+        els.loginForm.classList.toggle("active", authTab === "login");
+        els.registerForm.classList.toggle("active", authTab === "register");
+        return;
+    }
+
     const viewTarget = target.dataset.target;
     if (viewTarget) {
         switchView(viewTarget);
@@ -355,12 +412,15 @@ function escapeHtml(value) {
 }
 
 function bindEvents() {
-    document.addEventListener("click", handleDocumentClick);
-    els.refreshBtn.addEventListener("click", () => loadAll().then(() => showToast("数据已刷新")));
-    els.monthInput.addEventListener("change", loadAll);
-    els.categoryFilter.addEventListener("change", loadAll);
-    els.transactionForm.addEventListener("submit", submitTransaction);
-    els.budgetForm.addEventListener("submit", submitBudget);
+    document.addEventListener("click", event => handleDocumentClick(event).catch(error => showToast(error.message)));
+    els.loginForm.addEventListener("submit", event => submitLogin(event).catch(error => showToast(error.message)));
+    els.registerForm.addEventListener("submit", event => submitRegister(event).catch(error => showToast(error.message)));
+    els.logoutBtn.addEventListener("click", () => setUser(null));
+    els.refreshBtn.addEventListener("click", () => loadAll().then(() => showToast("数据已刷新")).catch(error => showToast(error.message)));
+    els.monthInput.addEventListener("change", () => loadAll().catch(error => showToast(error.message)));
+    els.categoryFilter.addEventListener("change", () => loadAll().catch(error => showToast(error.message)));
+    els.transactionForm.addEventListener("submit", event => submitTransaction(event).catch(error => showToast(error.message)));
+    els.budgetForm.addEventListener("submit", event => submitBudget(event).catch(error => showToast(error.message)));
     els.resetBudgetBtn.addEventListener("click", resetBudgetForm);
     els.transactionForm.querySelectorAll("input[name='type']").forEach(input => {
         input.addEventListener("change", syncCategoryOptions);
@@ -373,7 +433,11 @@ function bootstrap() {
     els.transactionForm.elements.transactionDate.value = today();
     initOptions();
     bindEvents();
-    loadAll().catch(error => showToast(error.message));
+
+    const savedUser = localStorage.getItem("financeUser");
+    if (savedUser) {
+        setUser(JSON.parse(savedUser));
+    }
 }
 
 bootstrap();

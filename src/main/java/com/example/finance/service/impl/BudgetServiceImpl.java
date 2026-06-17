@@ -38,7 +38,7 @@ public class BudgetServiceImpl implements BudgetService {
     @Override
     public void save(Budget budget) {
         validateBudget(budget, false);
-        budget.setUserId(DEFAULT_USER_ID);
+        budget.setUserId(normalizeUserId(budget.getUserId()));
 
         Budget exists = findByUserCategoryMonth(budget.getUserId(), budget.getCategory(), budget.getMonth());
         if (exists != null) {
@@ -51,7 +51,7 @@ public class BudgetServiceImpl implements BudgetService {
     public void update(Budget budget) {
         validateBudget(budget, true);
         Budget oldBudget = getRequiredBudget(budget.getId());
-        budget.setUserId(DEFAULT_USER_ID);
+        budget.setUserId(normalizeUserId(budget.getUserId()));
 
         Budget exists = findByUserCategoryMonth(budget.getUserId(), budget.getCategory(), budget.getMonth());
         if (exists != null && !exists.getId().equals(budget.getId())) {

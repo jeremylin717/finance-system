@@ -33,8 +33,6 @@ import java.util.List;
 @RequestMapping("/api/transaction")
 public class TransactionController {
 
-    private static final Integer DEFAULT_USER_ID = 1;
-
     private final TransactionService transactionService;
 
     @Operation(summary = "添加交易流水")
@@ -60,20 +58,24 @@ public class TransactionController {
     @Operation(summary = "按月份查询交易流水")
     @GetMapping("/list")
     public Result<List<Transaction>> list(
+            @Parameter(description = "用户ID", example = "1")
+            @RequestParam(required = false) Integer userId,
             @Parameter(description = "月份，格式yyyy-MM", example = "2026-06", required = true)
             @Pattern(regexp = "^\\d{4}-\\d{2}$", message = "月份格式必须为yyyy-MM")
             @RequestParam String month,
             @Parameter(description = "分类名称", example = "餐饮")
             @RequestParam(required = false) String category) {
-        return Result.success(transactionService.listByMonth(DEFAULT_USER_ID, month, category));
+        return Result.success(transactionService.listByMonth(userId, month, category));
     }
 
     @Operation(summary = "查询月度报表")
     @GetMapping("/report")
     public Result<MonthlyReportDTO> report(
+            @Parameter(description = "用户ID", example = "1")
+            @RequestParam(required = false) Integer userId,
             @Parameter(description = "月份，格式yyyy-MM", example = "2026-06", required = true)
             @Pattern(regexp = "^\\d{4}-\\d{2}$", message = "月份格式必须为yyyy-MM")
             @RequestParam String month) {
-        return Result.success(transactionService.getMonthlyReport(DEFAULT_USER_ID, month));
+        return Result.success(transactionService.getMonthlyReport(userId, month));
     }
 }

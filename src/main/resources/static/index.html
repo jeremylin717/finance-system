@@ -7,13 +7,59 @@
     <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
-<div class="shell">
+<section id="authPage" class="auth-page">
+    <div class="auth-visual">
+        <div class="brand auth-brand">
+            <div class="brand-mark">¥</div>
+            <div>
+                <h1>个人财务管理系统</h1>
+                <p>Finance OS</p>
+            </div>
+        </div>
+        <div class="auth-copy">
+            <span class="eyebrow">Smart Money</span>
+            <h2>把每一笔收支，变成清晰漂亮的财务地图。</h2>
+            <p>登录后管理流水、预算、月报和超支提醒。数据存储在你的 MySQL 数据库中，不再只是临时页面。</p>
+        </div>
+        <div class="auth-stats">
+            <div><strong>4</strong><span>核心模块</span></div>
+            <div><strong>∞</strong><span>自定义分类</span></div>
+            <div><strong>MySQL</strong><span>持久存储</span></div>
+        </div>
+    </div>
+
+    <div class="auth-card">
+        <div class="auth-tabs">
+            <button class="auth-tab active" data-auth-tab="login">登录</button>
+            <button class="auth-tab" data-auth-tab="register">注册</button>
+        </div>
+
+        <form id="loginForm" class="auth-form active">
+            <h3>欢迎回来</h3>
+            <p>输入账号密码进入你的财务仪表盘。</p>
+            <label>用户名<input name="username" placeholder="请输入用户名" required></label>
+            <label>密码<input name="password" type="password" placeholder="请输入密码" required></label>
+            <button class="primary-btn wide" type="submit">登录系统</button>
+        </form>
+
+        <form id="registerForm" class="auth-form">
+            <h3>创建账号</h3>
+            <p>注册后即可拥有独立的流水和预算数据。</p>
+            <label>用户名<input name="username" minlength="3" maxlength="30" placeholder="3-30 位用户名" required></label>
+            <label>昵称<input name="nickname" maxlength="30" placeholder="例如 小林"></label>
+            <label>密码<input name="password" type="password" minlength="6" maxlength="30" placeholder="至少 6 位密码" required></label>
+            <button class="primary-btn wide" type="submit">注册并进入</button>
+        </form>
+    </div>
+</section>
+
+<div id="appPage" class="shell hidden">
     <aside class="sidebar">
         <div class="brand">
             <div class="brand-mark">¥</div>
             <div>
                 <h1>个人财务管理系统</h1>
-                <p>Finance Dashboard</p>
+                <p id="loginUserText">Finance Dashboard</p>
             </div>
         </div>
         <nav class="nav">
@@ -25,8 +71,9 @@
         <div class="sidebar-card">
             <span>当前月份</span>
             <strong id="sideMonth">2026-06</strong>
-            <small>数据按月统计，用户ID固定为 1</small>
+            <small>登录用户的数据会独立统计</small>
         </div>
+        <button id="logoutBtn" class="logout-btn">退出登录</button>
     </aside>
 
     <main class="main">
@@ -61,37 +108,19 @@
             </div>
 
             <div class="metric-grid">
-                <article class="metric income">
-                    <span>总收入</span>
-                    <strong id="totalIncome">¥0.00</strong>
-                </article>
-                <article class="metric expense">
-                    <span>总支出</span>
-                    <strong id="totalExpense">¥0.00</strong>
-                </article>
-                <article class="metric balance">
-                    <span>结余</span>
-                    <strong id="balance">¥0.00</strong>
-                </article>
-                <article class="metric warning">
-                    <span>超支分类</span>
-                    <strong id="overCount">0</strong>
-                </article>
+                <article class="metric income"><span>总收入</span><strong id="totalIncome">¥0.00</strong></article>
+                <article class="metric expense"><span>总支出</span><strong id="totalExpense">¥0.00</strong></article>
+                <article class="metric balance"><span>结余</span><strong id="balance">¥0.00</strong></article>
+                <article class="metric warning"><span>超支分类</span><strong id="overCount">0</strong></article>
             </div>
 
             <div class="content-grid">
                 <section class="panel">
-                    <div class="panel-head">
-                        <h3>分类支出</h3>
-                        <span>按金额排序</span>
-                    </div>
+                    <div class="panel-head"><h3>分类支出</h3><span>按金额排序</span></div>
                     <div id="categoryStats" class="bars"></div>
                 </section>
                 <section class="panel">
-                    <div class="panel-head">
-                        <h3>最近流水</h3>
-                        <span id="recentCount">0 条</span>
-                    </div>
+                    <div class="panel-head"><h3>最近流水</h3><span id="recentCount">0 条</span></div>
                     <div id="recentList" class="timeline"></div>
                 </section>
             </div>
@@ -100,20 +129,14 @@
         <section id="transactions" class="view">
             <div class="work-grid">
                 <section class="panel form-panel">
-                    <div class="panel-head">
-                        <h3>添加交易</h3>
-                        <span>收入 / 支出</span>
-                    </div>
+                    <div class="panel-head"><h3>添加交易</h3><span>收入 / 支出</span></div>
                     <form id="transactionForm" class="form">
                         <div class="segmented">
                             <label><input type="radio" name="type" value="0" checked><span>支出</span></label>
                             <label><input type="radio" name="type" value="1"><span>收入</span></label>
                         </div>
                         <label>金额<input name="amount" type="number" step="0.01" min="0.01" placeholder="例如 35.50" required></label>
-                        <label>分类
-                            <input name="category" list="transactionCategoryOptions" placeholder="选择或输入自定义分类" required>
-                            <datalist id="transactionCategoryOptions"></datalist>
-                        </label>
+                        <label>分类<input name="category" list="transactionCategoryOptions" placeholder="选择或输入自定义分类" required><datalist id="transactionCategoryOptions"></datalist></label>
                         <label>日期<input name="transactionDate" type="date" required></label>
                         <label>说明<textarea name="description" rows="3" placeholder="例如 午餐、奖学金、地铁"></textarea></label>
                         <button class="primary-btn" type="submit">保存交易</button>
@@ -122,24 +145,12 @@
 
                 <section class="panel table-panel">
                     <div class="panel-head with-filter">
-                        <div>
-                            <h3>交易流水</h3>
-                            <span>支持按分类筛选</span>
-                        </div>
+                        <div><h3>交易流水</h3><span>支持按分类筛选</span></div>
                         <input id="categoryFilter" list="allCategoryOptions" placeholder="全部分类 / 输入筛选">
                     </div>
                     <div class="table-wrap">
                         <table>
-                            <thead>
-                            <tr>
-                                <th>日期</th>
-                                <th>类型</th>
-                                <th>分类</th>
-                                <th>金额</th>
-                                <th>说明</th>
-                                <th>操作</th>
-                            </tr>
-                            </thead>
+                            <thead><tr><th>日期</th><th>类型</th><th>分类</th><th>金额</th><th>说明</th><th>操作</th></tr></thead>
                             <tbody id="transactionTable"></tbody>
                         </table>
                     </div>
@@ -150,16 +161,10 @@
         <section id="budgets" class="view">
             <div class="work-grid">
                 <section class="panel form-panel">
-                    <div class="panel-head">
-                        <h3 id="budgetFormTitle">设置预算</h3>
-                        <span>按月、按分类</span>
-                    </div>
+                    <div class="panel-head"><h3 id="budgetFormTitle">设置预算</h3><span>按月、按分类</span></div>
                     <form id="budgetForm" class="form">
                         <input type="hidden" name="id">
-                        <label>分类
-                            <input name="category" list="budgetCategoryOptions" placeholder="选择或输入预算分类" required>
-                            <datalist id="budgetCategoryOptions"></datalist>
-                        </label>
+                        <label>分类<input name="category" list="budgetCategoryOptions" placeholder="选择或输入预算分类" required><datalist id="budgetCategoryOptions"></datalist></label>
                         <label>月份<input name="month" type="month" required></label>
                         <label>预算上限<input name="monthlyLimit" type="number" step="0.01" min="0.01" required></label>
                         <div class="button-row">
@@ -170,10 +175,7 @@
                 </section>
 
                 <section class="panel table-panel">
-                    <div class="panel-head">
-                        <h3>预算列表</h3>
-                        <span id="budgetCount">0 条</span>
-                    </div>
+                    <div class="panel-head"><h3>预算列表</h3><span id="budgetCount">0 条</span></div>
                     <div class="budget-list" id="budgetList"></div>
                 </section>
             </div>
@@ -182,17 +184,11 @@
         <section id="reports" class="view">
             <div class="content-grid">
                 <section class="panel">
-                    <div class="panel-head">
-                        <h3>每日支出趋势</h3>
-                        <span>按交易日期汇总</span>
-                    </div>
+                    <div class="panel-head"><h3>每日支出趋势</h3><span>按交易日期汇总</span></div>
                     <div id="dailyTrend" class="trend"></div>
                 </section>
                 <section class="panel">
-                    <div class="panel-head">
-                        <h3>超支检查</h3>
-                        <span id="overHint">预算健康</span>
-                    </div>
+                    <div class="panel-head"><h3>超支检查</h3><span id="overHint">预算健康</span></div>
                     <div id="overBudgetList" class="over-list"></div>
                 </section>
             </div>
