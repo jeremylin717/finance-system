@@ -8,6 +8,20 @@
 ![MySQL](https://img.shields.io/badge/MySQL-8+-4479A1)
 ![License](https://img.shields.io/badge/License-MIT-black)
 
+## 项目截图
+
+登录注册页面：
+
+![登录注册页面](docs/images/login-page.png)
+
+## 适用场景
+
+- Java Web / Spring Boot 课程设计
+- 个人财务管理系统毕业设计基础版本
+- MyBatis-Plus + MySQL 增删改查和统计查询练手项目
+- Knife4j 接口文档、统一返回、全局异常处理示例
+- 从后端接口到静态 Web UI 的完整前后端联调示例
+
 ## 项目亮点
 
 - **完整业务闭环**：登录注册、收入支出、预算、报表、超支检查全部可用。
@@ -265,6 +279,16 @@ POST /api/budget/save
 - 金额字段使用 `BigDecimal`。
 - Mapper 使用注解 SQL，没有 XML Mapper。
 - 当前前端登录状态保存在浏览器 `localStorage`，适合课程项目和本地演示；生产环境建议改为 JWT 或 Session。
+
+## 开源推广
+
+仓库已准备好基础推广材料：
+
+- [GitHub 推广指南](docs/GITHUB_PROMOTION.md)：仓库描述、分享文案、平台发布模板、7 天推广计划。
+- [推荐 Topics](docs/TOPICS.md)：可直接复制到 GitHub 仓库设置中。
+- [v1.0.0 发布说明](docs/RELEASE_NOTES_v1.0.0.md)：可用于创建 GitHub Release。
+
+建议在 GitHub 仓库右侧添加 About 描述、Topics 和项目截图，这会明显提升搜索曝光和打开后的可信度。
 
 ## 适合扩展的方向
 
