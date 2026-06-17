@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人财务管理系统</title>
+    <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+<div class="shell">
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-mark">¥</div>
+            <div>
+                <h1>个人财务管理系统</h1>
+                <p>Finance Dashboard</p>
+            </div>
+        </div>
+        <nav class="nav">
+            <button class="nav-item active" data-target="overview">总览</button>
+            <button class="nav-item" data-target="transactions">流水</button>
+            <button class="nav-item" data-target="budgets">预算</button>
+            <button class="nav-item" data-target="reports">报表</button>
+        </nav>
+        <div class="sidebar-card">
+            <span>当前月份</span>
+            <strong id="sideMonth">2026-06</strong>
+            <small>数据按月统计，用户ID固定为 1</small>
+        </div>
+    </aside>
+
+    <main class="main">
+        <header class="topbar">
+            <div>
+                <span class="eyebrow">Dashboard</span>
+                <h2>收支、预算与趋势一屏掌控</h2>
+            </div>
+            <div class="month-picker">
+                <label for="monthInput">月份</label>
+                <input id="monthInput" type="month" value="2026-06">
+                <button id="refreshBtn" class="primary-btn">刷新</button>
+            </div>
+        </header>
+
+        <section id="overview" class="view active">
+            <div class="hero">
+                <div class="hero-copy">
+                    <span class="eyebrow">Personal Finance</span>
+                    <h3>今天的每一笔账，都会成为月底的清晰答案。</h3>
+                    <p>快速记录收入和支出，实时查看月度结余、分类支出、预算超支情况。</p>
+                    <div class="hero-actions">
+                        <button class="primary-btn" data-target="transactions">添加流水</button>
+                        <button class="ghost-btn" data-target="budgets">设置预算</button>
+                    </div>
+                </div>
+                <div class="hero-panel">
+                    <span>本月结余</span>
+                    <strong id="heroBalance">¥0.00</strong>
+                    <div class="sparkline" id="sparkline"></div>
+                </div>
+            </div>
+
+            <div class="metric-grid">
+                <article class="metric income">
+                    <span>总收入</span>
+                    <strong id="totalIncome">¥0.00</strong>
+                </article>
+                <article class="metric expense">
+                    <span>总支出</span>
+                    <strong id="totalExpense">¥0.00</strong>
+                </article>
+                <article class="metric balance">
+                    <span>结余</span>
+                    <strong id="balance">¥0.00</strong>
+                </article>
+                <article class="metric warning">
+                    <span>超支分类</span>
+                    <strong id="overCount">0</strong>
+                </article>
+            </div>
+
+            <div class="content-grid">
+                <section class="panel">
+                    <div class="panel-head">
+                        <h3>分类支出</h3>
+                        <span>按金额排序</span>
+                    </div>
+                    <div id="categoryStats" class="bars"></div>
+                </section>
+                <section class="panel">
+                    <div class="panel-head">
+                        <h3>最近流水</h3>
+                        <span id="recentCount">0 条</span>
+                    </div>
+                    <div id="recentList" class="timeline"></div>
+                </section>
+            </div>
+        </section>
+
+        <section id="transactions" class="view">
+            <div class="work-grid">
+                <section class="panel form-panel">
+                    <div class="panel-head">
+                        <h3>添加交易</h3>
+                        <span>收入 / 支出</span>
+                    </div>
+                    <form id="transactionForm" class="form">
+                        <div class="segmented">
+                            <label><input type="radio" name="type" value="0" checked><span>支出</span></label>
+                            <label><input type="radio" name="type" value="1"><span>收入</span></label>
+                        </div>
+                        <label>金额<input name="amount" type="number" step="0.01" min="0.01" placeholder="例如 35.50" required></label>
+                        <label>分类
+                            <input name="category" list="transactionCategoryOptions" placeholder="选择或输入自定义分类" required>
+                            <datalist id="transactionCategoryOptions"></datalist>
+                        </label>
+                        <label>日期<input name="transactionDate" type="date" required></label>
+                        <label>说明<textarea name="description" rows="3" placeholder="例如 午餐、奖学金、地铁"></textarea></label>
+                        <button class="primary-btn" type="submit">保存交易</button>
+                    </form>
+                </section>
+
+                <section class="panel table-panel">
+                    <div class="panel-head with-filter">
+                        <div>
+                            <h3>交易流水</h3>
+                            <span>支持按分类筛选</span>
+                        </div>
+                        <input id="categoryFilter" list="allCategoryOptions" placeholder="全部分类 / 输入筛选">
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                            <tr>
+                                <th>日期</th>
+                                <th>类型</th>
+                                <th>分类</th>
+                                <th>金额</th>
+                                <th>说明</th>
+                                <th>操作</th>
+                            </tr>
+                            </thead>
+                            <tbody id="transactionTable"></tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+        </section>
+
+        <section id="budgets" class="view">
+            <div class="work-grid">
+                <section class="panel form-panel">
+                    <div class="panel-head">
+                        <h3 id="budgetFormTitle">设置预算</h3>
+                        <span>按月、按分类</span>
+                    </div>
+                    <form id="budgetForm" class="form">
+                        <input type="hidden" name="id">
+                        <label>分类
+                            <input name="category" list="budgetCategoryOptions" placeholder="选择或输入预算分类" required>
+                            <datalist id="budgetCategoryOptions"></datalist>
+                        </label>
+                        <label>月份<input name="month" type="month" required></label>
+                        <label>预算上限<input name="monthlyLimit" type="number" step="0.01" min="0.01" required></label>
+                        <div class="button-row">
+                            <button class="primary-btn" type="submit">保存预算</button>
+                            <button class="ghost-btn" id="resetBudgetBtn" type="button">清空</button>
+                        </div>
+                    </form>
+                </section>
+
+                <section class="panel table-panel">
+                    <div class="panel-head">
+                        <h3>预算列表</h3>
+                        <span id="budgetCount">0 条</span>
+                    </div>
+                    <div class="budget-list" id="budgetList"></div>
+                </section>
+            </div>
+        </section>
+
+        <section id="reports" class="view">
+            <div class="content-grid">
+                <section class="panel">
+                    <div class="panel-head">
+                        <h3>每日支出趋势</h3>
+                        <span>按交易日期汇总</span>
+                    </div>
+                    <div id="dailyTrend" class="trend"></div>
+                </section>
+                <section class="panel">
+                    <div class="panel-head">
+                        <h3>超支检查</h3>
+                        <span id="overHint">预算健康</span>
+                    </div>
+                    <div id="overBudgetList" class="over-list"></div>
+                </section>
+            </div>
+        </section>
+    </main>
+</div>
+
+<div id="toast" class="toast"></div>
+<datalist id="allCategoryOptions"></datalist>
+<script src="./app.js"></script>
+</body>
+</html>
